@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Dto\TaskDto;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateTaskRequest extends FormRequest
@@ -22,5 +23,10 @@ class UpdateTaskRequest extends FormRequest
             'category' => 'nullable|string|max:255',
             'status' => 'nullable|string|in:выполнена,не выполнена',
         ];
+    }
+
+    public function toDto(): TaskDto
+    {
+        return TaskDto::fromArray($this->validated());
     }
 }
