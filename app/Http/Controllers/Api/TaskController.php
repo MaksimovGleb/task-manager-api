@@ -28,8 +28,12 @@ class TaskController extends Controller
      */
     public function store(StoreTaskRequest $request): JsonResponse
     {
-        $task = $this->taskService->create($request->validated());
+        $task = $this->taskService->create($request->toDto());
 
+        return response()->json([
+            'id' => $task->id,
+            'message' => 'Task created successfully'
+        ], 201);
     }
 
     /**
@@ -38,6 +42,12 @@ class TaskController extends Controller
     public function show(string $id): JsonResponse|array|\App\Models\Task
     {
         $task = $this->taskService->find($id);
+
+        if (!$task) {
+            return response()->json(['message' => 'Task not found'], 404);
+        }
+
+        return $task;
     }
 
     /**
@@ -47,9 +57,13 @@ class TaskController extends Controller
     {
         $task = $this->taskService->find($id);
 
+        if (!$task) {
+            return response()->json(['message' => 'Task not found'], 404);
+        }
 
-        $this->taskService->update($task, $request->validated());
+        $this->taskService->update($task, $request->toDto());
 
+        return response()->json(['message' => 'Task updated successfully']);
     }
 
     /**
@@ -59,7 +73,12 @@ class TaskController extends Controller
     {
         $task = $this->taskService->find($id);
 
+        if (!$task) {
+            return response()->json(['message' => 'Task not found'], 404);
+        }
+
         $this->taskService->delete($task);
 
+        return response()->json(['message' => 'Task deleted successfully']);
     }
 }
