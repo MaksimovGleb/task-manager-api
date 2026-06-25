@@ -9,10 +9,22 @@
 # Устанавливаем зависимости, если папка vendor пуста
 [ ! -d vendor ] && composer install --no-interaction
 
-# Генерируем ключ, обновляем базу и запускаем тесты
+# Генерируем ключ
 php artisan key:generate --force
-php artisan migrate:fresh --seed --force
-php artisan test || echo "Тесты упали, но сервер запускается..."
+
+# Запускаем миграции
+php artisan migrate --force
+
+# Сидируем данные только если пользователей в базе еще нет
+USER_COUNT=$(php artisan tinker --execute="echo \App\Models\User::count();" | grep -oE '[0-9]+' | head -n 1)
+if [ "$USER_COUNT" = "0" ] || [ -z "$USER_COUNT" ]; then
+    echo "База пуста, запускаю сидеры..."
+    php artisan db:seed --force
+fi
+
+# Запускаем тесты, принудительно переопределяя базу на :memory:
+echo "Запуск тестов в изолированной памяти..."
+DB_DATABASE=:memory: php artisan test --env=testing || echo "Тесты упали, но сервер запускается..."
 
 # Запускаем сервер
 exec php artisan serve --host=0.0.0.0 --port=8000
